@@ -1,12 +1,6 @@
 import React, { useRef, useMemo, useLayoutEffect } from 'react';
-import { useFrame, useThree, ThreeElements } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-
-declare global {
-  namespace JSX {
-    interface IntrinsicElements extends ThreeElements {}
-  }
-}
 
 interface RainProps {
   weatherRef: React.MutableRefObject<{

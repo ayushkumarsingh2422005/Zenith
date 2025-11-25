@@ -1,5 +1,5 @@
 import React, { useRef, useState, useMemo, useEffect } from 'react';
-import { Canvas, useFrame, useThree, ThreeElements } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Stars, Cloud } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette, Noise } from '@react-three/postprocessing';
 import * as THREE from 'three';
@@ -7,12 +7,6 @@ import { InfiniteWorld } from './World/Terrain'; // Using the new Infinite World
 import { Water } from './World/Water';
 import { Flock } from './World/Flock';
 import { Rain } from './World/Rain';
-
-declare global {
-  namespace JSX {
-    interface IntrinsicElements extends ThreeElements {}
-  }
-}
 
 export type WeatherMode = 'DAY' | 'CLOUDY';
 

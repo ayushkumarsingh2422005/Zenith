@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <title>Zenith - Procedural Nature</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
       body, html, #root {
         width: 100%;
@@ -14,6 +13,168 @@
         padding: 0;
         overflow: hidden;
         background-color: #1a1a1a;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      }
+
+      /* UI Styles replacing Tailwind */
+      .app-container {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        background-color: #111827;
+        overflow: hidden;
+      }
+      
+      .scene-layer {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+      }
+
+      .ui-layer-top {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 1.5rem;
+        z-index: 10;
+        pointer-events: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        box-sizing: border-box;
+      }
+
+      .app-title {
+        font-size: 2.25rem;
+        line-height: 2.5rem;
+        font-weight: 300;
+        color: white;
+        letter-spacing: 0.1em;
+        filter: drop-shadow(0 10px 8px rgb(0 0 0 / 0.04)) drop-shadow(0 4px 3px rgb(0 0 0 / 0.1));
+        opacity: 0.9;
+        margin: 0;
+      }
+
+      .app-subtitle {
+        font-size: 0.875rem;
+        color: #d1d5db;
+        font-weight: 300;
+        margin-top: 0.25rem;
+        opacity: 0.7;
+        margin: 0;
+      }
+
+      .weather-toggle {
+        display: flex;
+        gap: 0.5rem;
+        pointer-events: auto;
+        background-color: rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        padding: 0.25rem;
+        border-radius: 9999px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .toggle-btn {
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        outline: none;
+      }
+
+      .toggle-btn.active {
+        background-color: white;
+        color: black;
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+      }
+
+      .toggle-btn.inactive {
+        background-color: transparent;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .toggle-btn.inactive:hover {
+        color: white;
+      }
+
+      .ui-layer-bottom {
+        position: absolute;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        display: flex;
+        gap: 1rem;
+        pointer-events: auto;
+      }
+
+      .mode-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 9999px;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        cursor: pointer;
+        background: none;
+      }
+
+      .mode-btn.active {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+      }
+
+      .mode-btn.inactive {
+        background-color: rgba(0, 0, 0, 0.3);
+        color: #9ca3af;
+      }
+
+      .mode-btn.inactive:hover {
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+
+      .btn-label {
+        font-weight: 500;
+      }
+
+      .instructions-panel {
+        position: absolute;
+        bottom: 2rem;
+        right: 2rem;
+        z-index: 10;
+        pointer-events: none;
+        text-align: right;
+        display: none;
+      }
+
+      @media (min-width: 768px) {
+        .instructions-panel {
+          display: block;
+        }
+      }
+
+      .instructions-title {
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin: 0 0 0.25rem 0;
+      }
+
+      .instructions-text {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.875rem;
+        margin: 0;
       }
     </style>
   <script type="importmap">

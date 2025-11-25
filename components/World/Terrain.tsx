@@ -1,14 +1,8 @@
 import React, { useMemo, useState, useRef } from 'react';
 import * as THREE from 'three';
-import { ThreeElements, useFrame } from '@react-three/fiber';
+import { useFrame } from '@react-three/fiber';
 import { noise, getTerrainHeight, WATER_LEVEL, SAND_LEVEL, ROCK_LEVEL } from '../../utils/math';
 import { NatureChunk } from './Nature';
-
-declare global {
-  namespace JSX {
-    interface IntrinsicElements extends ThreeElements {}
-  }
-}
 
 interface TerrainChunkProps {
   chunkX: number;

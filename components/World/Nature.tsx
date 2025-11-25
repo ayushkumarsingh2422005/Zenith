@@ -1,13 +1,7 @@
 import React, { useMemo, useRef, useLayoutEffect } from 'react';
 import * as THREE from 'three';
-import { ThreeElements, useFrame } from '@react-three/fiber';
+import { useFrame } from '@react-three/fiber';
 import { getTerrainHeight, WATER_LEVEL, TREELINE } from '../../utils/math';
-
-declare global {
-  namespace JSX {
-    interface IntrinsicElements extends ThreeElements {}
-  }
-}
 
 // Configuration
 const TREES_PER_CHUNK = 150; // Density per chunk

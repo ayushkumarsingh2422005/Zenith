@@ -1,13 +1,7 @@
 import React, { useRef, useMemo } from 'react';
-import { useFrame, ThreeElements, useThree } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { useDepthBuffer } from '@react-three/drei';
 import * as THREE from 'three';
-
-declare global {
-  namespace JSX {
-    interface IntrinsicElements extends ThreeElements {}
-  }
-}
 
 // Define a local type for the shader object passed to onBeforeCompile
 type ThreeShader = {

@@ -1,14 +1,8 @@
 import React, { useRef, useMemo } from 'react';
-import { useFrame, ThreeElements, useThree } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { getTerrainHeight } from '../../utils/math';
 import { noise } from '../../utils/math';
-
-declare global {
-  namespace JSX {
-    interface IntrinsicElements extends ThreeElements {}
-  }
-}
 
 interface FlockProps {
   onFlockUpdate?: (center: THREE.Vector3, velocity: THREE.Vector3) => void;
