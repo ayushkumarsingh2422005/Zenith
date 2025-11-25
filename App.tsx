@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Scene, WeatherMode } from './components/Scene';
 
 export default function App() {
+  useEffect(() => {
+    console.log('App component mounted!');
+  }, []);
+
   const [isBirdsEye, setIsBirdsEye] = useState(false);
   const [weather, setWeather] = useState<WeatherMode>('DAY');
 

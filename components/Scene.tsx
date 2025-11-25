@@ -1,3 +1,4 @@
+/// <reference path="../types.d.ts" />
 import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Stars, Cloud } from '@react-three/drei';
@@ -21,13 +22,13 @@ const CameraController: React.FC<{
   flockCenterRef: React.MutableRefObject<THREE.Vector3>;
   flockVelocityRef: React.MutableRefObject<THREE.Vector3>;
   activeFocusRef: React.MutableRefObject<THREE.Vector3>; // Tracks what the infinite world should generate around
-}> = ({ isBirdsEye, flockCenterRef, flockVelocityRef, activeFocusRef }) => {
-  const { camera, controls } = useThree();
+  controlsRef: React.MutableRefObject<any>;
+}> = ({ isBirdsEye, flockCenterRef, flockVelocityRef, activeFocusRef, controlsRef }) => {
+  const { camera } = useThree();
   const currentLookAt = useRef(new THREE.Vector3(0, 10, 0));
 
   useFrame((state, delta) => {
-    // @ts-ignore
-    if (!controls) return;
+    const controls = controlsRef.current;
 
     if (isBirdsEye) {
       // FOLLOW MODE: Strict cinematic chase
@@ -38,32 +39,33 @@ const CameraController: React.FC<{
       // Update generation focus
       activeFocusRef.current.copy(flockPos);
 
-      // Smoothly interpolate the look target to the flock center
-      currentLookAt.current.lerp(flockPos, 0.05);
-      // @ts-ignore
-      controls.target.copy(currentLookAt.current);
+      if (controls) {
+        // Smoothly interpolate the look target to the flock center
+        currentLookAt.current.lerp(flockPos, 0.05);
+        controls.target.copy(currentLookAt.current);
 
-      // Calculate ideal camera position: Behind and slightly above the flock
-      const normVel = flockVel.clone().normalize();
-      if (normVel.lengthSq() < 0.01) normVel.set(0, 0, 1); 
+        // Calculate ideal camera position: Behind and slightly above the flock
+        const normVel = flockVel.clone().normalize();
+        if (normVel.lengthSq() < 0.01) normVel.set(0, 0, 1); 
 
-      // Offset: 25 units behind, 15 units up
-      const cameraOffset = normVel.clone().multiplyScalar(-25).add(new THREE.Vector3(0, 15, 0));
-      const targetCamPos = flockPos.clone().add(cameraOffset);
+        // Offset: 25 units behind, 15 units up
+        const cameraOffset = normVel.clone().multiplyScalar(-25).add(new THREE.Vector3(0, 15, 0));
+        const targetCamPos = flockPos.clone().add(cameraOffset);
 
-      // Smoothly move camera
-      camera.position.lerp(targetCamPos, 0.05);
-      
-      // @ts-ignore
-      controls.update();
+        // Smoothly move camera
+        camera.position.lerp(targetCamPos, 0.05);
+        
+        controls.update();
+      }
 
     } else {
       // EXPLORE MODE:
       // Update generation focus to where the camera is looking (or camera position)
       activeFocusRef.current.copy(camera.position);
 
-      // @ts-ignore
-      controls.update();
+      if (controls) {
+        controls.update();
+      }
     }
   });
 
@@ -110,16 +112,22 @@ const WeatherConfigs: Record<WeatherMode, WeatherParams> = {
 };
 
 // Inner component that runs INSIDE the Canvas
-const SceneContent: React.FC<SceneProps> = ({ isBirdsEye, weather }) => {
+const SceneContent: React.FC<SceneProps & { controlsRef: React.MutableRefObject<any> }> = ({ isBirdsEye, weather, controlsRef }) => {
   // Refs to store flock state, passed down to Flock component
   const flockCenter = useRef(new THREE.Vector3(0, 50, 0));
   const flockVelocity = useRef(new THREE.Vector3(1, 0, 0));
   
   // Ref to track the "center" of the generated world (either flock or camera)
+  // Initialize to origin so terrain generates correctly from the start
   const activeFocus = useRef(new THREE.Vector3(0, 0, 0));
 
   // --- WEATHER STATE ---
   const weatherRef = useRef({ ...WeatherConfigs[weather] });
+  
+  // Update weather config when weather prop changes
+  useEffect(() => {
+    weatherRef.current = { ...WeatherConfigs[weather] };
+  }, [weather]);
   
   // Refs for scene elements to update without re-rendering
   const fogRef = useRef<THREE.FogExp2>(null);
@@ -194,6 +202,7 @@ const SceneContent: React.FC<SceneProps> = ({ isBirdsEye, weather }) => {
         flockCenterRef={flockCenter}
         flockVelocityRef={flockVelocity}
         activeFocusRef={activeFocus}
+        controlsRef={controlsRef}
       />
       
       {/* Atmosphere controlled by WeatherSystem */}
@@ -216,8 +225,7 @@ const SceneContent: React.FC<SceneProps> = ({ isBirdsEye, weather }) => {
         position={[-150, 100, -100]} 
         intensity={1.2} 
         color="#ffe8cc" 
-        castShadow 
-        shadow-bias={-0.0001}
+        castShadow
       >
         <orthographicCamera attach="shadow-camera" args={[-300, 300, 300, -300]} far={1000} />
       </directionalLight>
@@ -225,7 +233,7 @@ const SceneContent: React.FC<SceneProps> = ({ isBirdsEye, weather }) => {
       <hemisphereLight groundColor="#2a3038" color="#8fa0b0" intensity={0.6} />
 
       {/* World Content */}
-      <group position={[0, -10, 0]}>
+      <group position={[0, 0, 0]}>
         <InfiniteWorld viewerPosition={activeFocus} weatherRef={weatherRef} />
         <Water trackTarget={activeFocus} />
         <Flock onFlockUpdate={handleFlockUpdate} weatherRef={weatherRef} />
@@ -236,11 +244,29 @@ const SceneContent: React.FC<SceneProps> = ({ isBirdsEye, weather }) => {
 };
 
 export const Scene: React.FC<SceneProps> = ({ isBirdsEye, weather }) => {
+  const controlsRef = useRef<any>(null);
+  
+  useEffect(() => {
+    console.log('Scene mounted, Canvas should be rendering...');
+  }, []);
+  
   return (
-    <Canvas shadows camera={{ position: [100, 60, 100], fov: 45, far: 600 }}>
-      <SceneContent isBirdsEye={isBirdsEye} weather={weather} />
+    <Canvas 
+      shadows 
+      camera={{ position: [0, 50, 100], fov: 60, near: 0.1, far: 1000 }}
+      gl={{ antialias: true }}
+      onCreated={({ gl, scene, camera }) => {
+        console.log('Canvas created!', { gl, scene, camera });
+        console.log('Scene children:', scene.children.length);
+        console.log('Camera position:', camera.position);
+        // Look at origin
+        camera.lookAt(0, 0, 0);
+      }}
+    >
+      <SceneContent isBirdsEye={isBirdsEye} weather={weather} controlsRef={controlsRef} />
       
       <OrbitControls 
+        ref={controlsRef}
         makeDefault 
         enablePan={!isBirdsEye} 
         enableZoom={!isBirdsEye}
@@ -252,7 +278,7 @@ export const Scene: React.FC<SceneProps> = ({ isBirdsEye, weather }) => {
       />
 
       {/* Post Processing Effects */}
-      <EffectComposer enableNormalPass={false}>
+      <EffectComposer disableNormalPass>
         <Bloom 
           luminanceThreshold={0.55} 
           luminanceSmoothing={0.9} 

@@ -147,32 +147,40 @@ export const InfiniteWorld: React.FC<InfiniteWorldProps> = ({ viewerPosition, we
   // Increase render distance to 2 (5x5 grid) to ensure terrain exists beyond fog
   const RENDER_DISTANCE = 2; 
 
-  const [visibleChunks, setVisibleChunks] = useState<{x: number, z: number}[]>([]);
+  // Initialize chunks based on initial viewer position
+  const getInitialChunks = (): {x: number, z: number}[] => {
+    const currentChunkX = Math.round(viewerPosition.current.x / CHUNK_SIZE);
+    const currentChunkZ = Math.round(viewerPosition.current.z / CHUNK_SIZE);
+    const chunks: {x: number, z: number}[] = [];
+    for (let x = -RENDER_DISTANCE; x <= RENDER_DISTANCE; x++) {
+      for (let z = -RENDER_DISTANCE; z <= RENDER_DISTANCE; z++) {
+        chunks.push({ x: currentChunkX + x, z: currentChunkZ + z });
+      }
+    }
+    return chunks;
+  };
+
+  const [visibleChunks, setVisibleChunks] = useState<{x: number, z: number}[]>(getInitialChunks);
 
   useFrame(() => {
     // Determine which chunk the viewer is in
     const currentChunkX = Math.round(viewerPosition.current.x / CHUNK_SIZE);
     const currentChunkZ = Math.round(viewerPosition.current.z / CHUNK_SIZE);
 
-    // Check if we need to update
-    const needsUpdate = visibleChunks.length === 0 || 
-       !visibleChunks.some(c => c.x === currentChunkX && c.z === currentChunkZ);
-
-    if (true) { // Always recalculate range, let React.memo handle the DOM diffing
-       const newChunks = [];
-       for (let x = -RENDER_DISTANCE; x <= RENDER_DISTANCE; x++) {
-         for (let z = -RENDER_DISTANCE; z <= RENDER_DISTANCE; z++) {
-           newChunks.push({ x: currentChunkX + x, z: currentChunkZ + z });
-         }
-       }
-       
-       // Only set state if the key signature changes to prevent render loop
-       const currentKey = visibleChunks.map(c => `${c.x},${c.z}`).join('|');
-       const newKey = newChunks.map(c => `${c.x},${c.z}`).join('|');
-       
-       if (currentKey !== newKey) {
-          setVisibleChunks(newChunks);
-       }
+    // Always recalculate range, let React.memo handle the DOM diffing
+    const newChunks: {x: number, z: number}[] = [];
+    for (let x = -RENDER_DISTANCE; x <= RENDER_DISTANCE; x++) {
+      for (let z = -RENDER_DISTANCE; z <= RENDER_DISTANCE; z++) {
+        newChunks.push({ x: currentChunkX + x, z: currentChunkZ + z });
+      }
+    }
+    
+    // Only set state if the key signature changes to prevent render loop
+    const currentKey = visibleChunks.map(c => `${c.x},${c.z}`).join('|');
+    const newKey = newChunks.map(c => `${c.x},${c.z}`).join('|');
+    
+    if (currentKey !== newKey) {
+       setVisibleChunks(newChunks);
     }
   });
 

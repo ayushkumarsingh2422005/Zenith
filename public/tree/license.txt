@@ -1,0 +1,8 @@
+Model Information:
+* title:	Maple Tree
+* source:	https://sketchfab.com/3d-models/maple-tree-68bea58fd9a549a99cfa5d1c739c97a8
+* author:	driggleman (https://sketchfab.com/driggleman)
+
+Model License:
+* license type:	SKETCHFAB Standard (https://sketchfab.com/licenses)
+* requirements:	Under basic restrictions, use worldwide, on all types of media, commercially or not, and in all types of derivative works

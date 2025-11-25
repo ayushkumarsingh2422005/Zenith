@@ -13,6 +13,11 @@
     "types": [
       "node"
     ],
+    "include": [
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.d.ts"
+    ],
     "moduleResolution": "bundler",
     "isolatedModules": true,
     "moduleDetection": "force",
