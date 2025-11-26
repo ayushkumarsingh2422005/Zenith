@@ -80,9 +80,25 @@ const TerrainChunk: React.FC<TerrainChunkProps> = React.memo(({ chunkX, chunkZ, 
         // Slope based logic
         // If normal is too steep, it's rock regardless of height (unless underwater)
         if (ny < 0.65) { 
-           finalColor.copy(n > 0 ? colorRock : colorDarkRock);
-           // Add some noise to rock color
-           finalColor.multiplyScalar(0.9 + microN * 0.2);
+           // Steep cliffs - check if it's a very high mountain
+           if (y > ROCK_LEVEL + 15) {
+               // Very high cliffs: rock base transitioning to snow at the top
+               const snowStartHeight = ROCK_LEVEL + 25;
+               if (y > snowStartHeight) {
+                   // Snow on top of very high mountains
+                   finalColor.copy(colorSnow);
+               } else {
+                   // Rock transitioning to snow
+                   const snowBlend = (y - snowStartHeight + 10) / 10;
+                   finalColor.copy(n > 0 ? colorRock : colorDarkRock);
+                   finalColor.lerp(colorSnow, Math.max(0, Math.min(1, snowBlend)));
+               }
+           } else {
+               // Normal steep terrain - just rock
+               finalColor.copy(n > 0 ? colorRock : colorDarkRock);
+               // Add some noise to rock color
+               finalColor.multiplyScalar(0.9 + microN * 0.2);
+           }
         } else {
             // Flat terrain logic
             if (y < SAND_LEVEL) {
@@ -93,13 +109,24 @@ const TerrainChunk: React.FC<TerrainChunkProps> = React.memo(({ chunkX, chunkZ, 
                 // Mix in some dirt/rock on "semi-steep" areas
                 if (ny < 0.85) finalColor.lerp(colorRock, 0.4);
             } else {
-                // High altitude: Snow
-                // Fade snow in based on height and noise
-                const snowThreshold = ROCK_LEVEL + n * 5;
+                // High altitude: Snow on top of mountains
+                // For very high mountains, snow starts lower
+                const snowThreshold = y > ROCK_LEVEL + 20 
+                    ? ROCK_LEVEL + 20 + n * 3  // Very high peaks: snow starts lower
+                    : ROCK_LEVEL + n * 5;      // Normal high terrain
+                
                 if (y > snowThreshold) {
                     finalColor.copy(colorSnow);
                 } else {
-                     finalColor.copy(colorDarkRock);
+                    // Transition from rock to snow
+                    const transitionStart = snowThreshold - 5;
+                    if (y > transitionStart) {
+                        const blend = (y - transitionStart) / 5;
+                        finalColor.copy(colorDarkRock);
+                        finalColor.lerp(colorSnow, Math.max(0, Math.min(1, blend)));
+                    } else {
+                        finalColor.copy(colorDarkRock);
+                    }
                 }
             }
         }
@@ -144,7 +171,7 @@ interface InfiniteWorldProps {
 
 export const InfiniteWorld: React.FC<InfiniteWorldProps> = ({ viewerPosition, weatherRef }) => {
   const CHUNK_SIZE = 200;
-  // Increase render distance to 2 (5x5 grid) to ensure terrain exists beyond fog
+  // Increased render distance to show more of the far scene (5x5 grid)
   const RENDER_DISTANCE = 2; 
 
   // Initialize chunks based on initial viewer position

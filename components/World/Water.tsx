@@ -182,17 +182,7 @@ export const Water: React.FC<WaterProps> = ({ trackTarget }) => {
       // Clamp depthDiff to be non-negative
       depthDiff = max(0.0, depthDiff);
 
-      // 1. FOAM on Shoreline
-      float foamThreshold = 0.0025; 
-      float foam = 1.0 - smoothstep(0.0, foamThreshold, depthDiff);
-      
-      // Add noise to foam edge
-      float foamNoise = sin(vWorldPos.x * 5.0 + uTime) * cos(vWorldPos.z * 5.0 + uTime);
-      float noisyThreshold = foamThreshold + foamNoise * 0.001;
-      float noisyFoam = 1.0 - smoothstep(0.0, noisyThreshold, depthDiff);
-      
-      // Mix white foam into color
-      gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.95, 0.98, 1.0), noisyFoam * 0.4);
+      // Foam effect removed
       
       // 2. CAUSTICS in Shallow Water
       float causticDepthStart = 0.003;

@@ -31,7 +31,7 @@ const CameraController: React.FC<{
     const controls = controlsRef.current;
 
     if (isBirdsEye) {
-      // FOLLOW MODE: Strict cinematic chase
+      // FOLLOW MODE: Camera from bird's perspective - flying with the flock
       
       const flockPos = flockCenterRef.current;
       const flockVel = flockVelocityRef.current;
@@ -40,20 +40,27 @@ const CameraController: React.FC<{
       activeFocusRef.current.copy(flockPos);
 
       if (controls) {
-        // Smoothly interpolate the look target to the flock center
-        currentLookAt.current.lerp(flockPos, 0.05);
-        controls.target.copy(currentLookAt.current);
-
-        // Calculate ideal camera position: Behind and slightly above the flock
+        // Calculate the direction the birds are flying
         const normVel = flockVel.clone().normalize();
-        if (normVel.lengthSq() < 0.01) normVel.set(0, 0, 1); 
+        if (normVel.lengthSq() < 0.01) {
+          // If birds aren't moving much, default to forward direction
+          normVel.set(0, 0, -1);
+        }
 
-        // Offset: 25 units behind, 15 units up
-        const cameraOffset = normVel.clone().multiplyScalar(-25).add(new THREE.Vector3(0, 15, 0));
-        const targetCamPos = flockPos.clone().add(cameraOffset);
+        // Camera position: Slightly ahead and to the side of the flock
+        // This ensures birds are always visible in front of the camera
+        const aheadOffset = normVel.clone().multiplyScalar(8); // 8 units ahead
+        const sideOffset = new THREE.Vector3(-normVel.z, 0, normVel.x).normalize().multiplyScalar(5); // 5 units to the side
+        const targetCamPos = flockPos.clone().add(aheadOffset).add(sideOffset);
 
-        // Smoothly move camera
-        camera.position.lerp(targetCamPos, 0.05);
+        // Smoothly move camera to position
+        camera.position.lerp(targetCamPos, 0.1);
+
+        // Look at the flock center so birds are always in view
+        // Then look slightly ahead in the direction of travel
+        const lookTarget = flockPos.clone().add(normVel.clone().multiplyScalar(20));
+        currentLookAt.current.lerp(lookTarget, 0.1);
+        controls.target.copy(currentLookAt.current);
         
         controls.update();
       }
@@ -253,7 +260,7 @@ export const Scene: React.FC<SceneProps> = ({ isBirdsEye, weather }) => {
   return (
     <Canvas 
       shadows 
-      camera={{ position: [0, 50, 100], fov: 60, near: 0.1, far: 1000 }}
+      camera={{ position: [0, 50, 100], fov: 60, near: 0.1, far: 1500 }}
       gl={{ antialias: true }}
       onCreated={({ gl, scene, camera }) => {
         console.log('Canvas created!', { gl, scene, camera });
@@ -273,7 +280,7 @@ export const Scene: React.FC<SceneProps> = ({ isBirdsEye, weather }) => {
         enableRotate={!isBirdsEye} 
         maxPolarAngle={Math.PI / 2 - 0.02}
         minDistance={10}
-        maxDistance={400}
+        maxDistance={600}
         dampingFactor={0.05}
       />
 

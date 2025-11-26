@@ -91,5 +91,23 @@ export const getTerrainHeight = (x: number, z: number) => {
     // Make valleys flatter
     if (y < 0) y *= 0.6;
     
+    // Add very high mountain cliffs (dramatic peaks)
+    // Use a different frequency to create distinct mountain ranges
+    const mountainNoise = noise.noise2D(x * FREQUENCY * 0.25, z * FREQUENCY * 0.25);
+    const mountainMask = noise.noise2D(x * FREQUENCY * 0.12, z * FREQUENCY * 0.12);
+    
+    // Create mountains in areas where mask is positive (about 50% of terrain)
+    // This ensures some areas have very high cliffs while most terrain stays normal
+    if (mountainMask > 0.0) {
+        // Create very steep, high peaks - much taller than normal terrain
+        const normalizedMountain = (mountainNoise + 1.0) * 0.5; // Convert from [-1,1] to [0,1]
+        const mountainHeight = normalizedMountain * 80; // Very high peaks (up to 80 units above base)
+        
+        // Make them more dramatic and cliff-like with steeper transitions
+        // Use a power curve to create sharp peaks
+        const cliffFactor = Math.pow(normalizedMountain, 1.8);
+        y += mountainHeight * cliffFactor;
+    }
+    
     return y;
 };
